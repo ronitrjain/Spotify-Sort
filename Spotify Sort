@@ -1,0 +1,60 @@
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import classification_report
+from sklearn.preprocessing import StandardScaler
+
+# Set up the Spotify API client
+client_credentials_manager = SpotifyClientCredentials(client_id='your_client_id', client_secret='your_client_secret')
+sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+
+# Define the genres and artists of interest
+genres = ['rap', 'pop', 'country']
+artists = ['Drake', 'Taylor Swift', 'Luke Bryan']
+
+# Collect song data for each artist and genre combination
+song_data = []
+for genre in genres:
+    for artist in artists:
+        results = sp.search(q='artist:' + artist + ' genre:' + genre, type='track', limit=50)
+        for track in results['tracks']['items']:
+            song = {}
+            song['artist'] = artist
+            song['genre'] = genre
+            song['name'] = track['name']
+            song['popularity'] = track['popularity']
+            song['tempo'] = track['tempo']
+            song['acousticness'] = track['acousticness']
+            song['danceability'] = track['danceability']
+            song['energy'] = track['energy']
+            song_data.append(song)
+
+# Convert the song data to a Pandas DataFrame
+song_df = pd.DataFrame(song_data)
+
+# Extract relevant features and normalize the data
+X = song_df[['popularity', 'tempo', 'acousticness', 'danceability', 'energy']]
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+
+# Encode the target variable
+y = song_df['artist'].astype('category').cat.codes
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Train the decision tree model
+dtc = DecisionTreeClassifier()
+dtc.fit(X_train, y_train)
+
+# Evaluate the model on the test set
+y_pred = dtc.predict(X_test)
+print(classification_report(y_test, y_pred))
+
+# Use the model to predict the artist of a new song
+new_song_features = [0.8, 120, 0.4, 0.6, 0.5]
+new_song_features = scaler.transform([new_song_features])
+predicted_artist = dtc.predict(new_song_features)
+print("The predicted artist for the new song is:", predicted_artist)
