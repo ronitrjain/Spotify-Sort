@@ -26,6 +26,3 @@ You can customize the genres and artists of interest by modifying the genres and
 You can modify the features used for classification by adjusting the list of feature names in the X_train and X_test variables. You can also adjust the normalization method by modifying the scaler variable.
 
 You can customize the machine learning algorithm used for classification by replacing the DecisionTreeClassifier class with another classification algorithm from scikit-learn.
-
-License
-This project is licensed under the MIT License - see the LICENSE.md file for details.
